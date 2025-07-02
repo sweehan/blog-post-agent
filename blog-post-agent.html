@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Post Agent</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            color: #0073aa;
+            border-bottom: 2px solid #0073aa;
+            margin-bottom: -2px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background: #0073aa;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .log-entry {
+            padding: 10px;
+            margin-bottom: 5px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .log-entry.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .log-entry.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #0073aa;
+        }
+        .credentials-status {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #b8dae8;
+        }
+        .credential-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .credential-item:last-child {
+            border-bottom: none;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-badge.saved {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-badge.missing {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        small {
+            display: block;
+            color: #666;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Blog Post Agent</h1>
+        <p class="subtitle">Transform Google Sheets ideas into WordPress posts with AI</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab" onclick="switchTab('credentials')">Credentials</button>
+            <button class="tab" onclick="switchTab('logs')">Activity Logs</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content active">
+            <div class="credentials-status">
+                <h3>System Status</h3>
+                <div class="credential-item">
+                    <span>Google Sheets API</span>
+                    <span class="status-badge missing" id="google-status">Not Configured</span>
+                </div>
+                <div class="credential-item">
+                    <span>WordPress Connection</span>
+                    <span class="status-badge missing" id="wp-status">Not Configured</span>
+                </div>
+                <div class="credential-item">
+                    <span>AI Provider</span>
+                    <span class="status-badge missing" id="ai-status">Not Configured</span>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="checkNewPosts()">Check for New Posts</button>
+                <button onclick="processNow()">Process All Pending</button>
+                <button onclick="testConnections()" style="background: #6c757d;">Test Connections</button>
+            </div>
+
+            <div id="status" class="status"></div>
+            <div id="results"></div>
+        </div>
+
+        <!-- Credentials Tab -->
+        <div id="credentials-tab" class="tab-content">
+            <div class="section">
+                <h2>Google Sheets Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="apiKey">Google API Key:</label>
+                    <input type="password" id="apiKey" placeholder="AIzaSy...">
+                    <small>Enable Google Sheets API in Google Cloud Console</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="spreadsheetId">Spreadsheet ID:</label>
+                    <input type="text" id="spreadsheetId" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms">
+                    <small>Find this in your sheet's URL between /d/ and /edit</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="range">Range:</label>
+                    <input type="text" id="range" value="Sheet1!A:D" placeholder="Sheet1!A:D">
+                </div>
+                
+                <button onclick="saveGoogle()">Save Google Credentials</button>
+            </div>
+
+            <div class="section">
+                <h2>WordPress Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="wpUrl">WordPress URL:</label>
+                    <input type="url" id="wpUrl" placeholder="https://yoursite.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="wpUsername">Username:</label>
+                    <input type="text" id="wpUsername" placeholder="your-username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="wpPassword">Application Password:</label>
+                    <input type="password" id="wpPassword" placeholder="xxxx xxxx xxxx xxxx">
+                </div>
+                
+                <button onclick="saveWordPress()">Save WordPress Credentials</button>
+            </div>
+
+            <div class="section">
+                <h2>AI Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="aiProvider">AI Provider:</label>
+                    <select id="aiProvider" onchange="updateAIFields()">
+                        <option value="manual">Manual Content (for testing)</option>
+                        <option value="claude">Claude API</option>
+                    </select>
+                </div>
+                
+                <div id="aiKeyGroup" class="form-group" style="display:none;">
+                    <label for="aiKey">AI API Key:</label>
+                    <input type="password" id="aiKey" placeholder="Your AI API key">
+                </div>
+                
+                <div class="form-group">
+                    <label for="proxyUrl">Cloudflare Worker URL:</label>
+                    <input type="url" id="proxyUrl" placeholder="https://your-worker.workers.dev">
+                </div>
+                
+                <button onclick="saveAI()">Save AI Configuration</button>
+            </div>
+
+            <div class="section">
+                <h2>Email Notifications</h2>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="enableEmail" onchange="toggleEmail()">
+                        Enable email notifications
+                    </label>
+                </div>
+                
+                <div id="emailSettings" style="display:none;">
+                    <div class="form-group">
+                        <label for="emailTo">Your Email:</label>
+                        <input type="email" id="emailTo" placeholder="your@email.com">
+                    </div>
+                </div>
+                
+                <button onclick="saveEmail()">Save Email Settings</button>
+            </div>
+            
+            <div class="section">
+                <h2>Processed Posts Management</h2>
+                <p>The tool tracks which posts have been processed to avoid duplicates.</p>
+                <p>Processed posts: <span id="processed-count">0</span></p>
+                <button onclick="viewProcessedPosts()" style="background: #6c757d;">View Processed Posts</button>
+                <button onclick="clearProcessedHistory()" style="background: #dc3545;">Clear History</button>
+            </div>
+        </div>
+
+        <!-- Logs Tab -->
+        <div id="logs-tab" class="tab-content">
+            <div class="section">
+                <h2>Activity Logs</h2>
+                <button onclick="clearLogs()" style="background: #dc3545;">Clear Logs</button>
+                <div id="activity-logs" style="max-height: 500px; overflow-y: auto; margin-top: 20px;">
+                    <!-- Logs will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let sheetData = [];
+        let credentials = {
+            google: {},
+            wordpress: {},
+            ai: {},
+            email: {}
+        };
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadCredentials();
+            updateDashboard();
+            updateProcessedCount();
+            addLog('System initialized');
+        });
+
+        // Update processed count
+        function updateProcessedCount() {
+            const processedPosts = JSON.parse(localStorage.getItem('blogAgent_processed') || '[]');
+            const countEl = document.getElementById('processed-count');
+            if (countEl) {
+                countEl.textContent = processedPosts.length;
+            }
+        }
+
+        // View processed posts
+        function viewProcessedPosts() {
+            const processedPosts = JSON.parse(localStorage.getItem('blogAgent_processed') || '[]');
+            if (processedPosts.length === 0) {
+                showStatus('No processed posts yet', 'info');
+                return;
+            }
+            
+            let message = 'Processed Posts:\n\n';
+            processedPosts.forEach((title, index) => {
+                message += `${index + 1}. ${title}\n`;
+            });
+            
+            alert(message);
+        }
+
+        // Clear processed history
+        function clearProcessedHistory() {
+            if (confirm('Clear all processed post history? This will allow all posts to be processed again.')) {
+                localStorage.removeItem('blogAgent_processed');
+                updateProcessedCount();
+                showStatus('Processed history cleared', 'success');
+                addLog('Cleared processed posts history');
+            }
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+                content.style.display = 'none';
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').style.display = 'block';
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        // Load saved credentials
+        function loadCredentials() {
+            try {
+                // Load Google
+                const googleData = localStorage.getItem('blogAgent_google');
+                if (googleData) {
+                    credentials.google = JSON.parse(googleData);
+                    document.getElementById('apiKey').value = credentials.google.apiKey || '';
+                    document.getElementById('spreadsheetId').value = credentials.google.spreadsheetId || '';
+                    document.getElementById('range').value = credentials.google.range || 'Sheet1!A:D';
+                }
+                
+                // Load WordPress
+                const wpData = localStorage.getItem('blogAgent_wordpress');
+                if (wpData) {
+                    credentials.wordpress = JSON.parse(wpData);
+                    document.getElementById('wpUrl').value = credentials.wordpress.url || '';
+                    document.getElementById('wpUsername').value = credentials.wordpress.username || '';
+                    document.getElementById('wpPassword').value = credentials.wordpress.password || '';
+                }
+                
+                // Load AI
+                const aiData = localStorage.getItem('blogAgent_ai');
+                if (aiData) {
+                    credentials.ai = JSON.parse(aiData);
+                    document.getElementById('aiProvider').value = credentials.ai.provider || 'manual';
+                    document.getElementById('aiKey').value = credentials.ai.apiKey || '';
+                    document.getElementById('proxyUrl').value = credentials.ai.proxyUrl || '';
+                    updateAIFields();
+                }
+                
+                // Load Email
+                const emailData = localStorage.getItem('blogAgent_email');
+                if (emailData) {
+                    credentials.email = JSON.parse(emailData);
+                    document.getElementById('enableEmail').checked = credentials.email.enabled || false;
+                    document.getElementById('emailTo').value = credentials.email.to || '';
+                    toggleEmail();
+                }
+            } catch (error) {
+                console.error('Error loading credentials:', error);
+            }
+        }
+
+        // Save functions
+        function saveGoogle() {
+            credentials.google = {
+                apiKey: document.getElementById('apiKey').value,
+                spreadsheetId: document.getElementById('spreadsheetId').value,
+                range: document.getElementById('range').value
+            };
+            localStorage.setItem('blogAgent_google', JSON.stringify(credentials.google));
+            showStatus('Google credentials saved!', 'success');
+            updateDashboard();
+            addLog('Google credentials updated');
+        }
+
+        function saveWordPress() {
+            credentials.wordpress = {
+                url: document.getElementById('wpUrl').value,
+                username: document.getElementById('wpUsername').value,
+                password: document.getElementById('wpPassword').value
+            };
+            localStorage.setItem('blogAgent_wordpress', JSON.stringify(credentials.wordpress));
+            showStatus('WordPress credentials saved!', 'success');
+            updateDashboard();
+            addLog('WordPress credentials updated');
+        }
+
+        function saveAI() {
+            credentials.ai = {
+                provider: document.getElementById('aiProvider').value,
+                apiKey: document.getElementById('aiKey').value,
+                proxyUrl: document.getElementById('proxyUrl').value
+            };
+            localStorage.setItem('blogAgent_ai', JSON.stringify(credentials.ai));
+            showStatus('AI configuration saved!', 'success');
+            updateDashboard();
+            addLog('AI configuration updated');
+        }
+
+        function saveEmail() {
+            credentials.email = {
+                enabled: document.getElementById('enableEmail').checked,
+                to: document.getElementById('emailTo').value
+            };
+            localStorage.setItem('blogAgent_email', JSON.stringify(credentials.email));
+            showStatus('Email settings saved!', 'success');
+            addLog('Email settings updated');
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            // Google status
+            const googleStatus = document.getElementById('google-status');
+            if (credentials.google.apiKey && credentials.google.spreadsheetId) {
+                googleStatus.textContent = 'Configured';
+                googleStatus.className = 'status-badge saved';
+            } else {
+                googleStatus.textContent = 'Not Configured';
+                googleStatus.className = 'status-badge missing';
+            }
+            
+            // WordPress status
+            const wpStatus = document.getElementById('wp-status');
+            if (credentials.wordpress.url && credentials.wordpress.password) {
+                wpStatus.textContent = 'Configured';
+                wpStatus.className = 'status-badge saved';
+            } else {
+                wpStatus.textContent = 'Not Configured';
+                wpStatus.className = 'status-badge missing';
+            }
+            
+            // AI status
+            const aiStatus = document.getElementById('ai-status');
+            if (credentials.ai.provider) {
+                aiStatus.textContent = credentials.ai.provider === 'manual' ? 'Manual Mode' : 'AI Configured';
+                aiStatus.className = 'status-badge saved';
+            } else {
+                aiStatus.textContent = 'Not Configured';
+                aiStatus.className = 'status-badge missing';
+            }
+        }
+
+        // Check for new posts
+        async function checkNewPosts() {
+            try {
+                if (!credentials.google.apiKey || !credentials.google.spreadsheetId) {
+                    showStatus('Please configure Google Sheets first', 'error');
+                    return;
+                }
+                
+                showStatus('Checking for new posts...', 'info');
+                
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${credentials.google.spreadsheetId}/values/${credentials.google.range}?key=${credentials.google.apiKey}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok && data.values) {
+                    sheetData = [];
+                    // Skip header row
+                    for (let i = 1; i < data.values.length; i++) {
+                        const row = data.values[i];
+                        if (row[0]) {
+                            sheetData.push({
+                                title: row[0],
+                                keywords: row[1] || '',
+                                topic: row[2] || '',
+                                status: row[3] || 'pending'
+                            });
+                        }
+                    }
+                    
+                    // Load processed posts history
+                    const processedPosts = JSON.parse(localStorage.getItem('blogAgent_processed') || '[]');
+                    
+                    // Filter out already processed posts
+                    const actuallyPending = sheetData.filter(item => 
+                        item.status !== 'published' && !processedPosts.includes(item.title)
+                    );
+                    
+                    showStatus(`Found ${actuallyPending.length} new posts to process!`, 'success');
+                    addLog(`Found ${actuallyPending.length} new posts (${processedPosts.length} already processed)`);
+                } else {
+                    throw new Error(data.error?.message || 'Failed to fetch sheet');
+                }
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+                addLog('Error: ' + error.message);
+            }
+        }
+
+        // Process posts
+        async function processNow() {
+            try {
+                if (sheetData.length === 0) {
+                    await checkNewPosts();
+                }
+                
+                const pending = sheetData.filter(item => item.status !== 'published');
+                if (pending.length === 0) {
+                    showStatus('No pending posts to process', 'info');
+                    return;
+                }
+                
+                showStatus(`Processing ${pending.length} posts...`, 'info');
+                
+                // Load processed posts history
+                const processedPosts = JSON.parse(localStorage.getItem('blogAgent_processed') || '[]');
+                
+                for (const post of pending) {
+                    // Check if already processed
+                    if (processedPosts.includes(post.title)) {
+                        addLog(`Skipping already processed: ${post.title}`);
+                        continue;
+                    }
+                    
+                    try {
+                        const content = generateContent(post);
+                        const wpPost = await publishToWordPress(post.title, content);
+                        
+                        // Mark as processed
+                        processedPosts.push(post.title);
+                        localStorage.setItem('blogAgent_processed', JSON.stringify(processedPosts));
+                        updateProcessedCount();
+                        
+                        addLog(`Published: ${post.title}`);
+                    } catch (error) {
+                        addLog(`Failed: ${post.title} - ${error.message}`);
+                    }
+                }
+                
+                showStatus('Processing complete!', 'success');
+                
+                // Send email notification if enabled
+                if (credentials.email.enabled && credentials.email.to) {
+                    sendEmailNotification(pending.length);
+                }
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            }
+        }
+
+        // Generate content
+        function generateContent(post) {
+            if (credentials.ai.provider === 'claude' && credentials.ai.apiKey) {
+                // Would call Claude API here
+                return `<h2>AI Generated Content</h2><p>Content about ${post.title}</p>`;
+            } else {
+                // Manual content
+                return `
+                    <h2>Introduction</h2>
+                    <p>Welcome to our guide on ${post.title}. ${post.topic}</p>
+                    
+                    <h2>Key Points</h2>
+                    <p>This topic covers: ${post.keywords}</p>
+                    
+                    <h2>Conclusion</h2>
+                    <p>Thank you for reading about ${post.title}.</p>
+                `;
+            }
+        }
+
+        // Publish to WordPress
+        async function publishToWordPress(title, content) {
+            const auth = btoa(credentials.wordpress.username + ':' + credentials.wordpress.password);
+            
+            const response = await fetch(`${credentials.wordpress.url}/wp-json/wp/v2/posts`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + auth
+                },
+                body: JSON.stringify({
+                    title: title,
+                    content: content,
+                    status: 'draft'
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to publish');
+            }
+            
+            return await response.json();
+        }
+
+        // Test connections
+        async function testConnections() {
+            showStatus('Testing connections...', 'info');
+            
+            // Test Google
+            if (credentials.google.apiKey) {
+                try {
+                    const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${credentials.google.spreadsheetId}?key=${credentials.google.apiKey}`);
+                    if (response.ok) {
+                        addLog('✅ Google Sheets connected');
+                    } else {
+                        addLog('❌ Google Sheets failed');
+                    }
+                } catch (error) {
+                    addLog('❌ Google Sheets error: ' + error.message);
+                }
+            }
+            
+            // Test WordPress
+            if (credentials.wordpress.url && credentials.wordpress.password) {
+                try {
+                    const auth = btoa(credentials.wordpress.username + ':' + credentials.wordpress.password);
+                    const response = await fetch(`${credentials.wordpress.url}/wp-json/wp/v2/users/me`, {
+                        headers: { 'Authorization': 'Basic ' + auth }
+                    });
+                    if (response.ok) {
+                        addLog('✅ WordPress connected');
+                    } else {
+                        addLog('❌ WordPress failed');
+                    }
+                } catch (error) {
+                    addLog('❌ WordPress error: ' + error.message);
+                }
+            }
+            
+            showStatus('Connection tests complete', 'info');
+        }
+
+        // Email notification
+        function sendEmailNotification(count) {
+            const subject = `Blog Agent: ${count} posts processed`;
+            const body = `Your Blog Post Agent has processed ${count} posts. Check your WordPress site for the new drafts.`;
+            window.open(`mailto:${credentials.email.to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+        }
+
+        // UI helpers
+        function updateAIFields() {
+            const provider = document.getElementById('aiProvider').value;
+            document.getElementById('aiKeyGroup').style.display = provider === 'manual' ? 'none' : 'block';
+        }
+
+        function toggleEmail() {
+            const enabled = document.getElementById('enableEmail').checked;
+            document.getElementById('emailSettings').style.display = enabled ? 'block' : 'none';
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.className = 'status ' + type;
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 5000);
+        }
+
+        function addLog(message) {
+            const logs = document.getElementById('activity-logs');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.insertBefore(entry, logs.firstChild);
+        }
+
+        function clearLogs() {
+            if (confirm('Clear all logs?')) {
+                document.getElementById('activity-logs').innerHTML = '';
+                addLog('Logs cleared');
+            }
+        }
+    </script>
+</body>
+</html>
