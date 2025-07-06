@@ -1,5 +1,10 @@
-Blog Post Agent
+Blog Post Agent - AI-Powerd Content Agent
 Transform your Google Sheets ideas into published WordPress blog posts with AI-powered content generation.
+
+This is a single-page app. 
+
+For a modular version that includes creation of Instagram captions, check out https://github.com/sweehan/agent-post.
+
 🚀 Overview
 Blog Post Agent is a web-based automation tool that:
 - Reads blog post ideas from Google Sheets
