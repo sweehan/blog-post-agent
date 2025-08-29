@@ -1,4 +1,5 @@
 Blog Post Assistant - AI-Powerd Content Creation
+
 Transform your Google Sheets ideas into published WordPress blog posts with AI-powered content generation.
 
 This is a single-page app. 
