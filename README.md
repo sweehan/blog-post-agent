@@ -1,12 +1,12 @@
-Blog Post Agent - AI-Powerd Content Agent
+Blog Post Assistant - AI-Powerd Content Creation
 Transform your Google Sheets ideas into published WordPress blog posts with AI-powered content generation.
 
 This is a single-page app. 
 
-For a modular version that includes creation of Instagram captions, check out https://github.com/sweehan/agent-post.
+For a modular version that includes creation of Instagram captions, check out https://github.com/sweehan/post-assist.
 
 🚀 Overview
-Blog Post Agent is a web-based automation tool that:
+Blog Post Assistant is a web-based automation tool that:
 - Reads blog post ideas from Google Sheets
 - Generates content using AI (Claude/OpenAI) or manual templates
 - Publishes directly to WordPress
@@ -49,7 +49,7 @@ Step 2: WordPress Configuration
 - Log into WordPress admin
 - Users → Your Profile
 - Scroll to "Application Passwords"
-- Enter name: "Blog Post Agent"
+- Enter name: "Blog Post Assistant"
 - Generate password and copy it
 - Verify REST API:
 - Visit: https://yoursite.com/wp-json/wp/v2/posts
@@ -67,7 +67,7 @@ For Claude:
 Step 4: Deploy the Tool
 - Download blog-post-agent.html
 - Upload to your web server
-- Access via HTTPS: https://yoursite.com/tools/blog-post-agent.html
+- Access via HTTPS: https://yoursite.com/tools/blog-post-assistant.html
 - For security, consider password protecting the directory or using zero-trust access
 
 📖 Usage Guide
