@@ -65,7 +65,7 @@ For Claude:
 - No API needed - uses template content
 
 Step 4: Deploy the Tool
-- Download blog-post-agent.html
+- Download blog-post-assistant.html
 - Upload to your web server
 - Access via HTTPS: https://yoursite.com/tools/blog-post-assistant.html
 - For security, consider password protecting the directory or using zero-trust access
